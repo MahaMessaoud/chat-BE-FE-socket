@@ -1,0 +1,36 @@
+/* Centrer le formulaire */
+.vh-100 {
+  height: 100vh;
+}
+
+/* Style de la carte */
+.card {
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+/* Effet de focus sur les champs */
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0px 0px 8px rgba(13, 110, 253, 0.5);
+}
+
+/* Bouton stylisé */
+.btn-primary {
+  background: linear-gradient(45deg, #007bff, #6610f2);
+  border: none;
+  padding: 12px;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #0056b3, #4a0da5);
+  transform: scale(1.05);
+}
+
+/* Lien */
+.text-primary:hover {
+  text-decoration: underline;
+}

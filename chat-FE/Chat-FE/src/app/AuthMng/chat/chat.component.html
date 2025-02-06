@@ -1,0 +1,23 @@
+<div class="chat-container">
+  <h2>Chat en temps réel</h2>
+
+  <div class="user-selection">
+    <label for="userSelect">Choisir un utilisateur:</label>
+    <select [(ngModel)]="receiver" (change)="loadMessages()">
+      <option *ngFor="let user of connectedUsers" [value]="user">{{ user }}</option>
+    </select>
+  </div>
+
+  <div class="messages">
+    <div *ngFor="let msg of messages" class="message">
+      <strong>{{ msg.sender.username }}:</strong>
+      <p>{{ msg.content }}</p>
+      <span class="timestamp">{{ msg.createdAt | date: 'short' }}</span>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <textarea [(ngModel)]="newMessage" placeholder="Tapez votre message..." class="input-field"></textarea>
+    <button (click)="sendMessage()" class="send-button">Envoyer</button>
+  </div>
+</div>

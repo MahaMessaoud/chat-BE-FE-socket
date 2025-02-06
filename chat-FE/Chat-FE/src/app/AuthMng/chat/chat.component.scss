@@ -1,0 +1,117 @@
+/* Général */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Conteneur du chat */
+.chat-container {
+  width: 500px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 80vh;
+}
+
+/* En-tête du chat */
+.chat-header {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Affichage des messages */
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.message {
+  background-color: #ecf0f1;
+  margin: 10px 0;
+  border-radius: 8px;
+  padding: 10px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.message:hover {
+  background-color: #dfe6e9;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+strong {
+  color: #3498db;
+  font-size: 16px;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.message-content {
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+/* Zone de saisie */
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.input-field {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  min-height: 50px;
+  resize: none;
+  outline: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-field:focus {
+  border-color: #3498db;
+}
+
+.send-button {
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  align-self: flex-end;
+}
+
+.send-button:hover {
+  background-color: #2980b9;
+}

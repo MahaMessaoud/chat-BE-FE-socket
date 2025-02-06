@@ -1,0 +1,17 @@
+<div class="container" *ngIf="selectedResto">
+  <h2>Modifier le Restaurant</h2>
+
+  <form (ngSubmit)="updateResto()">
+    <label>Nom:</label>
+    <input type="text" [(ngModel)]="selectedResto.name" name="name" required />
+
+    <label>Localisation:</label>
+    <input type="text" [(ngModel)]="selectedResto.location" name="location" required />
+
+    <label>Type de Cuisine:</label>
+    <input type="text" [(ngModel)]="selectedResto.cuisine" name="cuisine" required />
+
+    <button type="submit">✅ Sauvegarder</button>
+    <button type="button" (click)="cancelUpdate()">❌ Annuler</button>
+  </form>
+</div>

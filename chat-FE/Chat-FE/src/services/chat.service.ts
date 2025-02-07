@@ -37,4 +37,11 @@ export class ChatService {
       });
     });
   }
+  receiveUnreadMessages(): Observable<any> {
+    return new Observable<any>(observer => {
+      this.socket.on('unreadMessages', (messages: any) => {
+        observer.next(messages);
+      });
+    });
+  }
 }

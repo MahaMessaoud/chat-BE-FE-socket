@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ChatService } from 'src/services/chat.service';
-import { MatSnackBar } from '@angular/material/snack-bar'; // Snackbar service
+import { MatSnackBar } from '@angular/material/snack-bar'; // Import MatSnackBar
 
 @Component({
   selector: 'app-chat',
@@ -76,7 +76,7 @@ export class ChatComponent implements OnInit {
   constructor(
     private chatService: ChatService,
     private http: HttpClient,
-    private snackBar: MatSnackBar // Inject the snackBar service
+    private snackBar: MatSnackBar // Inject MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -140,7 +140,8 @@ export class ChatComponent implements OnInit {
       if (messages.length > 0) {
         // Show a snackbar notification
         this.snackBar.open('You have unread messages!', 'Close', {
-          duration: 5000, // 5 seconds
+          duration: 5000,
+          data: { message: 'You have unread messages!' } // Add the message property
         });
       }
     });

@@ -1,16 +1,43 @@
-
+<!--
  <div class="chat-container">
   <h2 class="chat-title">Chat en temps réel</h2>
 
   <div class="user-selection">
     <label for="userSelect">Choisir un utilisateur connecté:</label>
     <select [(ngModel)]="receiver" (change)="loadMessages()" class="form-select">
-      <!-- Display connected users -->
       <ng-container *ngFor="let user of connectedUsers">
         <option [value]="user">{{ user }} (Connecté)</option>
       </ng-container>
 
-      <!-- Display disconnected users -->
+      <ng-container *ngFor="let user of allUsers">
+        <option *ngIf="!connectedUsers.includes(user)" [value]="user">{{ user }} (Déconnecté)</option>
+      </ng-container>
+    </select>
+  </div>
+
+  <div class="messages">
+    <div *ngFor="let msg of messages" class="message">
+      <strong>{{ msg.sender }}:</strong>
+      <p>{{ msg.message }}</p>
+      <span class="timestamp">{{ msg.createdAt | date: 'short' }}</span>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <textarea [(ngModel)]="newMessage" placeholder="Tapez votre message..." class="input-field"></textarea>
+    <button (click)="sendMessage()" class="send-button">Envoyer</button>
+  </div>
+</div> -->
+<div class="chat-container">
+  <h2 class="chat-title">Chat en temps réel</h2>
+
+  <div class="user-selection">
+    <label for="userSelect">Choisir un utilisateur connecté:</label>
+    <select [(ngModel)]="receiver" (change)="loadMessages()" class="form-select">
+      <ng-container *ngFor="let user of connectedUsers">
+        <option [value]="user">{{ user }} (Connecté)</option>
+      </ng-container>
+
       <ng-container *ngFor="let user of allUsers">
         <option *ngIf="!connectedUsers.includes(user)" [value]="user">{{ user }} (Déconnecté)</option>
       </ng-container>

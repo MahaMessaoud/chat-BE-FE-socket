@@ -11,6 +11,7 @@ import { LoginComponent } from './AuthMng/login/login.component';
 import { AuthInterceptor } from './Interceptors/auth.interceptor';
 import { ChatComponent } from './AuthMng/chat/chat.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
+    MatSnackBarModule
   ],
   bootstrap: [AppComponent],
 

@@ -1,3 +1,4 @@
+
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-md-6">
@@ -6,7 +7,7 @@
           <h2 class="mb-0">Connexion</h2>
         </div>
         <div class="card-body">
-          <form (submit)="login()">
+          <form (ngSubmit)="login()" #loginForm="ngForm">
             <!-- Champ Email -->
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
@@ -17,7 +18,14 @@
                 [(ngModel)]="credentials.email"
                 name="email"
                 placeholder="Entrez votre email"
-                required />
+                required
+                email
+                #email="ngModel"
+              />
+              <div *ngIf="email.invalid && email.touched" class="text-danger">
+                <small *ngIf="email.errors?.['required']">L'email est requis.</small>
+                <small *ngIf="email.errors?.['email']">Veuillez entrer un email valide.</small>
+              </div>
             </div>
 
             <!-- Champ Mot de passe -->
@@ -30,18 +38,25 @@
                 [(ngModel)]="credentials.password"
                 name="password"
                 placeholder="Entrez votre mot de passe"
-                required />
+                required
+                minlength="6"
+                #password="ngModel"
+              />
+              <div *ngIf="password.invalid && password.touched" class="text-danger">
+                <small *ngIf="password.errors?.['required']">Le mot de passe est requis.</small>
+                <small *ngIf="password.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</small>
+              </div>
             </div>
 
             <!-- Bouton de connexion -->
             <div class="d-grid">
-              <button type="submit" class="btn btn-primary btn-lg">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="loginForm.invalid">
                 Se connecter
               </button>
             </div>
           </form>
           <p class="text-center mt-3">
-            vous n avez pas d compte ? <a href="/register" class="text-primary fw-bold">inscrivez-vous</a>
+            Vous n'avez pas de compte ? <a href="/register" class="text-primary fw-bold">Inscrivez-vous</a>
           </p>
         </div>
       </div>

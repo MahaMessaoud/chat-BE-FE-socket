@@ -1,9 +1,10 @@
+
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="col-md-5">
     <div class="card shadow-lg border-0 rounded-4 p-4">
       <h2 class="text-center mb-4"><i class="fas fa-user-plus"></i> Inscription</h2>
 
-      <form (submit)="register()">
+      <form (ngSubmit)="register()" #registerForm="ngForm">
         <!-- Champ Nom d'utilisateur -->
         <div class="mb-3">
           <label for="username" class="form-label">Nom d'utilisateur</label>
@@ -29,7 +30,13 @@
             name="email"
             placeholder="Entrez votre email"
             required
+            email
+            #email="ngModel"
           />
+          <div *ngIf="email.invalid && email.touched" class="text-danger">
+            <small *ngIf="email.errors?.['required']">L'email est requis.</small>
+            <small *ngIf="email.errors?.['email']">Veuillez entrer un email valide.</small>
+          </div>
         </div>
 
         <!-- Champ Mot de passe -->
@@ -43,12 +50,18 @@
             name="password"
             placeholder="Entrez un mot de passe sécurisé"
             required
+            minlength="6"
+            #password="ngModel"
           />
+          <div *ngIf="password.invalid && password.touched" class="text-danger">
+            <small *ngIf="password.errors?.['required']">Le mot de passe est requis.</small>
+            <small *ngIf="password.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères.</small>
+          </div>
         </div>
 
         <!-- Bouton Inscription -->
         <div class="d-grid">
-          <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+          <button type="submit" class="btn btn-primary btn-lg rounded-pill" [disabled]="registerForm.invalid">
             <i class="fas fa-user-check"></i> S'inscrire
           </button>
         </div>

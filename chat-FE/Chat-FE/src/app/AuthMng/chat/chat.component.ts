@@ -1,6 +1,6 @@
 
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';  // Pour appeler l'API de récupération des utilisateurs connectés
+import { HttpClient } from '@angular/common/http';
 import { ChatService } from 'src/services/chat.service';
 
 @Component({
@@ -9,44 +9,54 @@ import { ChatService } from 'src/services/chat.service';
   styleUrls: ['./chat.component.scss']
 })
 export class ChatComponent implements OnInit {
-  messages: any[] = [];  // Liste des messages
-  newMessage: string = '';  // Nouveau message à envoyer
-  receiver: string = '';  // Utilisateur avec qui discuter
-  connectedUsers: string[] = [];  // Liste des utilisateurs connectés
+  messages: any[] = [];
+  newMessage: string = '';
+  receiver: string = '';
+  connectedUsers: string[] = [];
 
   constructor(private chatService: ChatService, private http: HttpClient) {}
 
   ngOnInit(): void {
-    // Appeler le service pour récupérer les utilisateurs connectés
     this.loadConnectedUsers();
 
-    // Recevoir les nouveaux messages en temps réel via WebSocket
     this.chatService.receiveMessage((msg: any) => {
-      this.messages.push(msg);
+      console.log('Received message:', msg);
+
+      //  *** KEY CHANGE: Extract the message properties ***
+      this.messages.push({
+        sender: msg.sender,
+        message: msg.message,
+        createdAt: msg.createdAt
+      });
     });
+
+    this.loadMessages(); // Load initial messages on component init
   }
 
-  // Méthode pour récupérer les utilisateurs connectés depuis l'API
   loadConnectedUsers(): void {
     this.http.get<string[]>('http://localhost:5000/api/connectedUsers')
       .subscribe(users => {
-        this.connectedUsers = users;  // Stocker les utilisateurs connectés dans la propriété connectedUsers
+        this.connectedUsers = users;
       });
   }
 
-  // Envoi d'un message
   sendMessage(): void {
     if (this.newMessage.trim() && this.receiver.trim()) {
-      this.chatService.sendMessage(this.newMessage, this.receiver);  // Envoie du message via Socket.IO
-      this.newMessage = '';  // Réinitialiser le champ du message
+      this.chatService.sendMessage(this.newMessage, this.receiver);
+      this.newMessage = '';
+       this.loadMessages();// Refresh messages after sending
     }
   }
 
-  // Charger les messages avec un utilisateur sélectionné
   loadMessages(): void {
     if (this.receiver.trim()) {
       this.chatService.getMessages(this.receiver).subscribe((data) => {
-        this.messages = data;
+        // *** KEY CHANGE: Ensure data is an array and extract properties ***
+        this.messages = Array.isArray(data) ? data.map((msg:any) => ({
+          sender: msg.sender.username, // Access username from populated sender
+          message: msg.content,         // Access content (not message)
+          createdAt: msg.createdAt
+        })) : [];
       });
     }
   }

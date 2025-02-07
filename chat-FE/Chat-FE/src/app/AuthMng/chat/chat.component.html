@@ -10,8 +10,8 @@
 
   <div class="messages">
     <div *ngFor="let msg of messages" class="message">
-      <strong>{{ msg.sender.username }}:</strong>
-      <p>{{ msg.content }}</p>
+      <strong>{{ msg.sender}}:</strong>
+      <p>{{ msg.message }}</p>
       <span class="timestamp">{{ msg.createdAt | date: 'short' }}</span>
     </div>
   </div>
@@ -21,3 +21,4 @@
     <button (click)="sendMessage()" class="send-button">Envoyer</button>
   </div>
 </div>
+

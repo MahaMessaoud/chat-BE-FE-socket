@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -51,16 +49,15 @@ io.use((socket, next) => {
 
     socket.user = { id: decoded.id, username: user.username };
     connectedUsers[user.username] = socket.id;
+    io.emit("userStatusUpdate", Object.keys(connectedUsers)); // Send updated user list
     next();
   });
 });
 
 // WebSocket Connection
-
 io.on("connection", (socket) => {
   console.log(`🟢 User connected: ${socket.user.username}`);
 
-  // Send message to the receiver and save it in DB
   socket.on("sendMessage", async ({ receiver, message }) => {
     try {
       const receiverUser = await User.findOne({ username: receiver });
@@ -76,19 +73,19 @@ io.on("connection", (socket) => {
 
       await newMessage.save();
 
-      
-io.to(connectedUsers[receiver]).emit("newMessage", {
-  sender: socket.user.username,
-  message: message,
-  createdAt: newMessage.createdAt,
-});
+      // Emit the message to the receiver
+      io.to(connectedUsers[receiver]).emit("newMessage", {
+        sender: socket.user.username,
+        message: message,
+        createdAt: newMessage.createdAt,
+      });
 
-socket.emit("newMessage", {
-  sender: socket.user.username,
-  message: message,
-  createdAt: newMessage.createdAt,
-});
-
+      // Emit the message to the sender's window
+      socket.emit("newMessage", {
+        sender: socket.user.username,
+        message: message,
+        createdAt: newMessage.createdAt,
+      });
     } catch (error) {
       console.error("Error sending message:", error);
       socket.emit("error", { message: "Error sending message" });
@@ -99,9 +96,9 @@ socket.emit("newMessage", {
   socket.on("disconnect", () => {
     console.log(`🔴 User disconnected: ${socket.user.username}`);
     delete connectedUsers[socket.user.username];
+    io.emit("userStatusUpdate", Object.keys(connectedUsers)); // Send updated user list
   });
 });
-
 
 // Fetch messages between two users
 app.get("/api/messages/:receiver", authMiddleware.protect, async (req, res) => {
@@ -142,11 +139,21 @@ app.get("/api/messages", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find().select("username"); // Select only the username field
+    res.json(users.map((user) => user.username)); // Return an array of usernames
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 // Fetch connected users
 app.get("/api/connectedUsers", (req, res) => {
   res.json(Object.keys(connectedUsers));
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+server.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+);

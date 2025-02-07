@@ -30,4 +30,11 @@ export class ChatService {
   receiveMessage(callback: (msg: any) => void): void {
     this.socket.on('newMessage', callback);
   }
+  getUserStatusUpdates(): Observable<string[]> {
+    return new Observable<string[]>(observer => {
+      this.socket.on('userStatusUpdate', (users: string[]) => {
+        observer.next(users);
+      });
+    });
+  }
 }

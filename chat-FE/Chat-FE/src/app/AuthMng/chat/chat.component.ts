@@ -13,16 +13,16 @@ export class ChatComponent implements OnInit {
   newMessage: string = '';
   receiver: string = '';
   connectedUsers: string[] = [];
+  allUsers: string[] = []; // All users from the database
 
   constructor(private chatService: ChatService, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadConnectedUsers();
+    this.loadAllUsers(); // Fetch all users, connected or not
 
     this.chatService.receiveMessage((msg: any) => {
       console.log('Received message:', msg);
-
-      //  *** KEY CHANGE: Extract the message properties ***
       this.messages.push({
         sender: msg.sender,
         message: msg.message,
@@ -40,19 +40,25 @@ export class ChatComponent implements OnInit {
       });
   }
 
+  loadAllUsers(): void {
+    this.http.get<string[]>('http://localhost:5000/api/users') // Fetch all users
+      .subscribe(users => {
+        this.allUsers = users;
+      });
+  }
+
   sendMessage(): void {
     if (this.newMessage.trim() && this.receiver.trim()) {
       this.chatService.sendMessage(this.newMessage, this.receiver);
       this.newMessage = '';
-       this.loadMessages();// Refresh messages after sending
+      this.loadMessages(); // Refresh messages after sending
     }
   }
 
   loadMessages(): void {
     if (this.receiver.trim()) {
       this.chatService.getMessages(this.receiver).subscribe((data) => {
-        // *** KEY CHANGE: Ensure data is an array and extract properties ***
-        this.messages = Array.isArray(data) ? data.map((msg:any) => ({
+        this.messages = Array.isArray(data) ? data.map((msg: any) => ({
           sender: msg.sender.username, // Access username from populated sender
           message: msg.content,         // Access content (not message)
           createdAt: msg.createdAt

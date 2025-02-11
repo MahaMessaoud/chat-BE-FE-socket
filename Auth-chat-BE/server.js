@@ -25,6 +25,7 @@ const io = new Server(server, {
 });
 
 let connectedUsers = {}; // Store connected users' socket IDs
+let offlineMessages = {}; // Store unread messages for disconnected users
 
 app.use(cors());
 app.use(express.json());
@@ -53,51 +54,160 @@ io.use((socket, next) => {
     next();
   });
 });
+async function countUnreadMessages(userId) {
+  const messages = await Message.find({ receiver: userId, read: false });
+  const unreadCounts = {};
 
+  messages.forEach((msg) => {
+    unreadCounts[msg.sender] = (unreadCounts[msg.sender] || 0) + 1;
+  });
+
+  return unreadCounts;
+}
+
+async function getUsersWithUnread() {
+  const users = await User.find().select("username unreadMessages");
+  return users.map((user) => ({
+    username: user.username,
+    unread: Object.values(user.unreadMessages || {}).reduce(
+      (acc, val) => acc + val,
+      0
+    ),
+    online: Boolean(connectedUsers[user.username]),
+  }));
+}
 // WebSocket Connection
 io.on("connection", (socket) => {
-  console.log(`🟢 User connected: ${socket.user.username}`);
+  try {
+    console.log(`🟢 User connected: ${socket.user.username}`);
+    connectedUsers[socket.user.username] = socket.id;
 
-  socket.on("sendMessage", async ({ receiver, message }) => {
-    try {
-      const receiverUser = await User.findOne({ username: receiver });
-      if (!receiverUser) {
-        return socket.emit("error", { message: "Receiver not found" });
-      }
+    // Diffuse immédiatement la liste des utilisateurs connectés
+    io.emit("userStatusUpdate", Object.keys(connectedUsers));
 
-      const newMessage = new Message({
-        sender: socket.user.id,
-        receiver: receiverUser._id,
-        content: message,
-      });
-
-      await newMessage.save();
-
-      // Emit the message to the receiver
-      io.to(connectedUsers[receiver]).emit("newMessage", {
-        sender: socket.user.username,
-        message: message,
-        createdAt: newMessage.createdAt,
-      });
-
-      // Emit the message to the sender's window
-      socket.emit("newMessage", {
-        sender: socket.user.username,
-        message: message,
-        createdAt: newMessage.createdAt,
-      });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      socket.emit("error", { message: "Error sending message" });
+    // Envoi des messages non lus si disponibles
+    if (offlineMessages[socket.user.username]) {
+      socket.emit("newUnreadMessages", offlineMessages[socket.user.username]);
     }
-  });
 
-  // On disconnect, remove user from connected users list
-  socket.on("disconnect", () => {
-    console.log(`🔴 User disconnected: ${socket.user.username}`);
-    delete connectedUsers[socket.user.username];
-    io.emit("userStatusUpdate", Object.keys(connectedUsers)); // Send updated user list
-  });
+    socket.on("sendMessage", async ({ receiver, message }) => {
+      try {
+        console.log("sendMessage");
+        const receiverUser = await User.findOne({ username: receiver });
+        console.log("receiverUser", receiverUser);
+        if (!receiverUser) {
+          return socket.emit("error", { message: "Receiver not found" });
+        }
+
+        // ✅ Créer un nouveau message avec `read: false`
+        const newMessage = new Message({
+          sender: socket.user.id,
+          receiver: receiverUser._id,
+          content: message,
+          read: false,
+        });
+        await newMessage.save();
+
+        // ✅ Incrémenter le nombre de messages non lus pour ce destinataire
+        await User.findByIdAndUpdate(receiverUser._id, {
+          $inc: { [`unreadMessages.${socket.user.id}`]: 1 },
+        });
+
+        // ✅ Si le destinataire est en ligne, envoie le message en temps réel
+        if (connectedUsers[receiver]) {
+          io.to(connectedUsers[receiver]).emit("newMessage", {
+            sender: socket.user.username,
+            message: message,
+            createdAt: newMessage.createdAt,
+          });
+
+          // ✅ Mise à jour immédiate du badge rouge
+          io.to(connectedUsers[receiver]).emit(
+            "updateUnreadCount",
+            await countUnreadMessages(receiverUser._id)
+          );
+        }
+
+        // ✅ Mettre à jour la liste des messages non lus pour tous les utilisateurs
+        io.emit("updateUnreadCount", await getUsersWithUnread());
+      } catch (error) {
+        console.error("Error sending message:", error);
+        socket.emit("error", { message: "Error sending message" });
+      }
+    });
+
+    socket.on("openChat", async ({ sender }) => {
+      try {
+        await User.findByIdAndUpdate(socket.user.id, {
+          $set: {
+            [`unreadMessages.${sender}`]: 0,
+            [`openChats.${sender}`]: true,
+          },
+        });
+
+        io.to(socket.id).emit(
+          "updateUnreadCount",
+          await getUsersWithUnread(socket.user.id)
+        );
+      } catch (error) {
+        console.error("Error opening chat:", error);
+      }
+    });
+    // ✅ Envoi d'un message dans le chat room (diffusé à tous les utilisateurs)
+
+    socket.on("sendRoomMessage", async (messageData) => {
+      try {
+        // Trouver l'ID de l'utilisateur à partir de son nom d'utilisateur
+        const senderUser = await User.findOne({ username: messageData.sender });
+        if (!senderUser) {
+          return socket.emit("error", { message: "Utilisateur non trouvé" });
+        }
+    
+        const newMessage = new Message({
+          sender: senderUser._id, 
+          content: messageData.message,
+          receiver: null,
+          read: true, 
+        });
+    
+        await newMessage.save();
+    
+        io.emit("newMessage", {
+          sender: senderUser.username, 
+          message: messageData.message,
+          createdAt: newMessage.createdAt,
+        });
+    
+        console.log(`Message envoyé à la chat room : ${messageData.message}`);
+      } catch (error) {
+        console.error("Erreur lors de l'envoi du message dans la room:", error);
+        socket.emit("error", { message: "Erreur lors de l'envoi du message." });
+      }
+    });
+    
+    socket.on("disconnect", () => {
+      console.log(`🔴 User disconnected: ${socket.user.username}`);
+      delete connectedUsers[socket.user.username];
+
+      io.emit("userStatusUpdate", Object.keys(connectedUsers));
+    });
+  } catch (error) {
+    console.error("Error in WebSocket connection:", error);
+    socket.emit("error", { message: "Connection error" });
+  }
+});
+
+app.get("/api/chat-room/messages", async (req, res) => {
+  try {
+    const messages = await Message.find({ receiver: null }) // Aucun destinataire spécifique
+      .populate("sender", "username") // Ajouter le nom de l'expéditeur
+      .sort({ createdAt: 1 }); // Tri par date de création
+
+    res.json(messages);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des messages:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
 });
 
 // Fetch messages between two users

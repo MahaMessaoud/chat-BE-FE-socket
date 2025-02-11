@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { RegisterComponent } from './AuthMng/register/register.component';
 import { LoginComponent } from './AuthMng/login/login.component';
 import { ChatComponent } from './AuthMng/chat/chat.component';
+import { ChatroomComponent } from './AuthMng/chatroom/chatroom.component';
 
 const routes: Routes = [
   { path: 'restaurants', component: ListRestauComponent },  // Liste des restaurants
@@ -14,6 +15,8 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'chat', component: ChatComponent },
+  { path: 'chatr', component: ChatroomComponent },
+
 
 ];
 

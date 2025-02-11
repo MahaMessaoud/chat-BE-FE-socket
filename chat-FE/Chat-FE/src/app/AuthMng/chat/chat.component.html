@@ -1,59 +1,38 @@
-<!--
- <div class="chat-container">
-  <h2 class="chat-title">Chat en temps réel</h2>
 
-  <div class="user-selection">
-    <label for="userSelect">Choisir un utilisateur connecté:</label>
-    <select [(ngModel)]="receiver" (change)="loadMessages()" class="form-select">
-      <ng-container *ngFor="let user of connectedUsers">
-        <option [value]="user">{{ user }} (Connecté)</option>
-      </ng-container>
-
-      <ng-container *ngFor="let user of allUsers">
-        <option *ngIf="!connectedUsers.includes(user)" [value]="user">{{ user }} (Déconnecté)</option>
-      </ng-container>
-    </select>
-  </div>
-
-  <div class="messages">
-    <div *ngFor="let msg of messages" class="message">
-      <strong>{{ msg.sender }}:</strong>
-      <p>{{ msg.message }}</p>
-      <span class="timestamp">{{ msg.createdAt | date: 'short' }}</span>
-    </div>
-  </div>
-
-  <div class="input-container">
-    <textarea [(ngModel)]="newMessage" placeholder="Tapez votre message..." class="input-field"></textarea>
-    <button (click)="sendMessage()" class="send-button">Envoyer</button>
-  </div>
-</div> -->
 <div class="chat-container">
-  <h2 class="chat-title">Chat en temps réel</h2>
+  <div class="users-list">
+    <h1>{{ currentUser }}</h1>
+    <h3>Utilisateurs</h3>
+    <ul>
+      <li *ngFor="let user of allUsers" (click)="selectUser(user)" [class.active]="user === receiver">
+        <span class="status-dot" [class.online]="connectedUsers.includes(user)"></span>
+        {{ user }}
+        <!-- ✅ Affichage correct du badge si messages non lus et si l'utilisateur n'est pas actuellement sélectionné -->
+        <span *ngIf="hasUnreadMessages(user) && user !== receiver" class="badge unread-badge">
+          {{ unreadMessages[user] }}
+        </span>
+      </li>
+    </ul>
 
-  <div class="user-selection">
-    <label for="userSelect">Choisir un utilisateur connecté:</label>
-    <select [(ngModel)]="receiver" (change)="loadMessages()" class="form-select">
-      <ng-container *ngFor="let user of connectedUsers">
-        <option [value]="user">{{ user }} (Connecté)</option>
-      </ng-container>
-
-      <ng-container *ngFor="let user of allUsers">
-        <option *ngIf="!connectedUsers.includes(user)" [value]="user">{{ user }} (Déconnecté)</option>
-      </ng-container>
-    </select>
   </div>
 
-  <div class="messages">
-    <div *ngFor="let msg of messages" class="message">
-      <strong>{{ msg.sender }}:</strong>
-      <p>{{ msg.message }}</p>
-      <span class="timestamp">{{ msg.createdAt | date: 'short' }}</span>
+  <div class="chat-box" *ngIf="receiver">
+    <h3>Discussion avec {{ receiver }}</h3>
+    <div *ngIf="messages.length === 0" class="no-messages">Aucun message</div>
+
+    <div class="messages">
+      <div *ngFor="let msg of messages" [class.my-message]="msg.sender === 'Moi'" class="message">
+        <strong>{{ msg.sender }}:</strong> {{ msg.message }}
+        <span class="timestamp">{{ msg.createdAt }}</span>
+      </div>
     </div>
-  </div>
 
-  <div class="input-container">
-    <textarea [(ngModel)]="newMessage" placeholder="Tapez votre message..." class="input-field"></textarea>
-    <button (click)="sendMessage()" class="send-button">Envoyer</button>
+    <div class="input-box">
+      <input [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Tapez un message..." />
+      <button (click)="sendMessage()">Envoyer</button>
+    </div>
   </div>
 </div>
+
+
+
